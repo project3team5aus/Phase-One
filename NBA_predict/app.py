@@ -8,6 +8,8 @@ from sqlalchemy import create_engine, func
 from flask import Flask, jsonify, render_template
 
 
+import jsons
+
 #################################################
 # Database Setup
 #################################################
@@ -39,7 +41,29 @@ app = Flask(__name__)
 @app.route("/")
 def index():
     """Return the homepage."""
-    return render_template("index.html")
+    """Return a list of data for today's games including our predictions for each game"""
+    # Query all today games
+    results = session.query(TodayPredictions).all()
+
+    # Create a dictionary from the row data and append to a list of all_games
+    today_games = []
+    for t_game in results:
+        t_game_dict = {}
+        t_game_dict["date"] = t_game.date
+        t_game_dict["time"] = t_game.time
+        t_game_dict["location"] = t_game.location
+        t_game_dict["home_team"] = t_game.home_team
+        t_game_dict["road_team"] = t_game.road_team
+        t_game_dict["home_team_abr"] = t_game.home_team_abr
+        t_game_dict["road_team_abr"] = t_game.road_team_abr
+        t_game_dict["road_win_prediction"] = t_game.road_win_prediction
+        t_game_dict["home_team_logo"] = t_game.home_team_logo
+        t_game_dict["road_team_logo"] = t_game.road_team_logo
+        today_games.append(t_game_dict)
+
+    today_json = jsons.dump(today_games)
+    print(today_json)
+    return render_template("index.html", today_json=today_json)
 
 @app.route("/available_routes")
 def welcome():
